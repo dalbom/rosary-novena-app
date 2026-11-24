@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261124110301'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261124110826'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
