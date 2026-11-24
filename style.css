@@ -161,3 +161,11 @@ h1 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 6px 4px 
 #toast.show { transform: translate(-50%, 0); }
 .ptext p .paren { color: var(--sub); font-size: 15px; }
 .ptext p.mys { font-size: 22px; font-weight: 600; line-height: 1.55; }
+
+/* 새 버전 알림 */
+#updbar { position: fixed; z-index: 25; left: 12px; right: 12px; top: calc(var(--sat) + 10px); max-width: 480px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 10px 10px 18px; border-radius: 22px;
+  background: var(--toast); font-size: 14.5px; font-weight: 600; }
+#updbar small { display: block; font-size: 11.5px; font-weight: 500; color: var(--sub); margin-top: 1px; }
+#updbar button { padding: 9px 16px; border-radius: 16px; background: rgba(var(--gold), .22); color: var(--gold-text); font-weight: 700; font-size: 14px; }
+body.has-upd #view { padding-top: calc(var(--sat) + 84px); }

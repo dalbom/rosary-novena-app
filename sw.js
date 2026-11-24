@@ -1,5 +1,5 @@
 // 오프라인 캐시. VERSION 은 build.sh 가 빌드할 때마다 바꿔 넣는다.
-const VERSION = 'novena-20261124094312';
+const VERSION = 'novena-20261124110301';
 const FILES = ['./', 'index.html', 'style.css', 'prayers.js', 'app.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

@@ -1,4 +1,5 @@
 'use strict';
+const APP_VERSION = '20261124110301'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -125,7 +126,7 @@ $('#tabbar').addEventListener('click', (e) => {
 function renderList(v) {
   const t = today();
   let h = `<div class="head"><h1>지향 목록</h1><div class="acts">
-    <button class="iconbtn glass" id="bSet" aria-label="설정"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button>
+    <button class="iconbtn glass" id="bSet" aria-label="설정"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
     <button class="iconbtn glass" id="bAdd" aria-label="지향 추가"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>`;
   if (!data.intentions.length) {
     h += `<div class="glass empty"><span class="big">✝</span>아직 지향이 없습니다.<br>54일 동안 바칠 기도의 지향을 추가하세요.<br><button class="pill primary glass" id="bAdd2">지향 추가</button></div>`;
@@ -292,6 +293,8 @@ function editText(key, label) {
 function renderSettings(v) {
   let h = `<button class="back glass" id="bBack"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>목록</button>
     <h1 style="margin-top:14px">설정</h1>
+    <div class="sect">앱</div>
+    <button class="item glass" id="bUpd">업데이트 확인<em id="verLbl">현재 버전 ${esc(verLabel(APP_VERSION))}</em></button>
     <div class="sect">백업</div>
     <button class="item glass" id="bExp">기록 내보내기<em>파일로 저장</em></button>
     <button class="item glass" id="bImp">기록 가져오기<em>백업 파일 선택</em></button>
@@ -305,6 +308,7 @@ function renderSettings(v) {
   v.innerHTML = h;
   v.onclick = (e) => {
     if (e.target.closest('#bBack')) { ui.sub = null; return render(); }
+    if (e.target.closest('#bUpd')) return checkUpdate(true);
     if (e.target.closest('#bExp')) return exportData();
     if (e.target.closest('#bImp')) return $('#fImp').click();
     const b = e.target.closest('[data-k]'); if (b) editText(b.dataset.k, b.dataset.l);
@@ -332,6 +336,38 @@ async function exportData() {
 }
 
 // 자정이 지나거나 앱으로 돌아오면 다시 그림
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('#modal').innerHTML) render(); });
+// ---------- 새 버전 확인 / 업데이트 ----------
+function verLabel(v) { const m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})/.exec(v || ''); return m ? `${m[1]}.${m[2]}.${m[3]} ${m[4]}:${m[5]}` : '개발판'; }
+let newVer = null;
+async function checkUpdate(manual) {
+  if (!/^\d{12}/.test(APP_VERSION) || location.protocol !== 'https:') { if (manual) toast('개발판이라 확인할 수 없습니다'); return; }
+  try {
+    const r = await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' });
+    const { version } = await r.json();
+    if (version && version !== APP_VERSION) { newVer = version; showUpdateBar(); if (manual) applyUpdate(); }
+    else if (manual) toast('최신 버전입니다');
+  } catch (e) { if (manual) toast('인터넷 연결을 확인하세요'); }
+}
+function showUpdateBar() {
+  if ($('#updbar')) return;
+  const b = document.createElement('div');
+  b.id = 'updbar'; b.className = 'glass';
+  b.innerHTML = `<span>새 버전이 있습니다 <small>${esc(verLabel(newVer))}</small></span><button id="updGo">업데이트</button>`;
+  document.body.appendChild(b);
+  document.body.classList.add('has-upd');
+  $('#updGo').onclick = applyUpdate;
+}
+async function applyUpdate() {
+  toast('업데이트 중…');
+  try {
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.update().catch(() => {});
+    if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map((k) => caches.delete(k))); }
+  } catch (e) { /* 그래도 새로고침 */ }
+  location.reload(); // 기도 진행 위치와 기록은 저장돼 있어 그대로 이어짐
+}
+
+document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (!$('#modal').innerHTML) render(); checkUpdate(false); });
+setTimeout(() => checkUpdate(false), 1500);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 render();
