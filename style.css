@@ -97,7 +97,7 @@ h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; margin: 6px 4px 
 .pprog { height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .15); margin: 10px 0 0; }
 .pprog b { display: block; height: 100%; background: var(--accent); border-radius: 2px; transition: width .25s; }
 .pbody { flex: 1; min-height: 0; display: flex; gap: 6px; }
-.ptext { flex: 1; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; padding: 14px 4px; }
+.ptext { flex: 1; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; padding: 14px 4px; }
 .ptext .inner { margin: auto 0; }
 .ptext .kicker { color: var(--accent); font-weight: 700; font-size: 13.5px; letter-spacing: .02em; }
 .ptext h2 { margin: 6px 0 14px; font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
