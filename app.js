@@ -76,16 +76,16 @@ const BEADS = (() => {
 // 십자가가 아래, 위로 올라가며 바친다 (y 좌표를 뒤집어 그림)
 function beadsSvg(cur) {
   const H = BEADS.h, Y = (y) => H - y;
-  let s = `<svg viewBox="0 0 30 ${BEADS.h}" preserveAspectRatio="xMidYMid meet"><line x1="15" y1="10" x2="15" y2="${BEADS.h - 26}" stroke="rgba(255,244,225,.2)" stroke-width="1"/>`;
+  let s = `<svg viewBox="0 0 30 ${BEADS.h}" preserveAspectRatio="xMidYMid meet"><line x1="15" y1="10" x2="15" y2="${BEADS.h - 26}" style="stroke:rgba(var(--ink),.2)" stroke-width="1"/>`;
   BEADS.arr.forEach((b, i) => {
     const on = i < cur, now = i === cur;
     // 지난 알: 신비 색 / 지금 알: 밝은 상아색 + 얇은 테 / 남은 알: 어두운 빈 알
-    const fill = now ? '#f1e9da' : on ? 'var(--accent)' : '#2b2622';
-    if (b.t === 'x') s += `<path d="M15 ${H - 27}v24M8 ${H - 20}h14" stroke="${now || on ? fill : 'rgba(255,244,225,.3)'}" stroke-width="${now ? 3.6 : 3}" stroke-linecap="round"/>`;
+    const fill = now ? 'var(--cur)' : on ? 'var(--accent)' : 'var(--bead-empty)';
+    if (b.t === 'x') s += `<path d="M15 ${H - 27}v24M8 ${H - 20}h14" style="stroke:${now || on ? (now ? 'var(--accent)' : fill) : 'rgba(var(--ink),.3)'}" stroke-width="${now ? 3.6 : 3}" stroke-linecap="round"/>`;
     else {
       const r = (b.t === 'L' ? 5.6 : 3.4) + (now ? 1.2 : 0);
-      if (now) s += `<circle cx="15" cy="${Y(b.y)}" r="${r + 2.6}" fill="var(--bg)" stroke="var(--accent)" stroke-width="1"/>`;
-      s += `<circle cx="15" cy="${Y(b.y)}" r="${r}" fill="${fill}"${on ? ' fill-opacity=".8"' : ''} stroke="${now || on ? 'none' : 'rgba(255,244,225,.28)'}" stroke-width=".7"/>`;
+      if (now) s += `<circle cx="15" cy="${Y(b.y)}" r="${r + 2.6}" style="fill:var(--bg);stroke:var(--accent)" stroke-width="1"/>`;
+      s += `<circle cx="15" cy="${Y(b.y)}" r="${r}" style="fill:${fill};stroke:${now ? 'var(--accent)' : on ? 'none' : 'rgba(var(--ink),.28)'}"${on ? ' fill-opacity=".8"' : ''} stroke-width=".7"/>`;
     }
   });
   return s + '</svg>';
@@ -97,7 +97,13 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 function closeModal() { $('#modal').innerHTML = ''; }
 function modal(html) { $('#modal').innerHTML = `<div class="sheet glass">${html}</div>`; return $('#modal .sheet'); }
 $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
-function setAccent(c) { document.documentElement.style.setProperty('--accent', c || '#c2a878'); }
+// 신비별 강조색: 다크용(MYSTERIES.color)과 라이트용(더 진한 색)
+const ACCENT_LIGHT = { joy: '#587586', light: '#8f7140', sorrow: '#985a53', glory: '#6d6189' };
+function setAccent(m) {
+  const st = document.documentElement.style;
+  st.setProperty('--accent-d', m ? m.color : '#c2a878');
+  st.setProperty('--accent-l', m ? ACCENT_LIGHT[m.id] : '#8f7140');
+}
 
 function render() {
   const v = $('#view');
@@ -240,7 +246,7 @@ function renderSession(v, s) {
   const it = findI(s.iid), n = dayNo(it, s.date), di = dayInfo(n), steps = buildSteps(n);
   s.step = Math.max(0, Math.min(s.step, steps.length - 1));
   const st = steps[s.step];
-  setAccent(di.mystery.color);
+  setAccent(di.mystery);
   v.className = 'pray';
   const firstBead = steps.findIndex((x) => x.bead != null);
   let lastBead = 0; steps.forEach((x, i) => { if (x.bead != null) lastBead = i; });
