@@ -73,17 +73,19 @@ const BEADS = (() => {
   for (let d = 0; d < 5; d++) { y += 5; add('L'); for (let i = 0; i < 10; i++) add('s'); }
   return { arr, h: y + 10 };
 })();
+// 십자가가 아래, 위로 올라가며 바친다 (y 좌표를 뒤집어 그림)
 function beadsSvg(cur) {
-  let s = `<svg viewBox="0 0 30 ${BEADS.h}" preserveAspectRatio="xMidYMid meet"><line x1="15" y1="26" x2="15" y2="${BEADS.h - 10}" stroke="rgba(255,244,225,.2)" stroke-width="1"/>`;
+  const H = BEADS.h, Y = (y) => H - y;
+  let s = `<svg viewBox="0 0 30 ${BEADS.h}" preserveAspectRatio="xMidYMid meet"><line x1="15" y1="10" x2="15" y2="${BEADS.h - 26}" stroke="rgba(255,244,225,.2)" stroke-width="1"/>`;
   BEADS.arr.forEach((b, i) => {
     const on = i < cur, now = i === cur;
     // 지난 알: 신비 색 / 지금 알: 밝은 상아색 + 얇은 테 / 남은 알: 어두운 빈 알
     const fill = now ? '#f1e9da' : on ? 'var(--accent)' : '#2b2622';
-    if (b.t === 'x') s += `<path d="M15 3v24M8 10h14" stroke="${now || on ? fill : 'rgba(255,244,225,.3)'}" stroke-width="${now ? 3.6 : 3}" stroke-linecap="round"/>`;
+    if (b.t === 'x') s += `<path d="M15 ${H - 27}v24M8 ${H - 20}h14" stroke="${now || on ? fill : 'rgba(255,244,225,.3)'}" stroke-width="${now ? 3.6 : 3}" stroke-linecap="round"/>`;
     else {
       const r = (b.t === 'L' ? 5.6 : 3.4) + (now ? 1.2 : 0);
-      if (now) s += `<circle cx="15" cy="${b.y}" r="${r + 2.6}" fill="var(--bg)" stroke="var(--accent)" stroke-width="1"/>`;
-      s += `<circle cx="15" cy="${b.y}" r="${r}" fill="${fill}"${on ? ' fill-opacity=".8"' : ''} stroke="${now || on ? 'none' : 'rgba(255,244,225,.28)'}" stroke-width=".7"/>`;
+      if (now) s += `<circle cx="15" cy="${Y(b.y)}" r="${r + 2.6}" fill="var(--bg)" stroke="var(--accent)" stroke-width="1"/>`;
+      s += `<circle cx="15" cy="${Y(b.y)}" r="${r}" fill="${fill}"${on ? ' fill-opacity=".8"' : ''} stroke="${now || on ? 'none' : 'rgba(255,244,225,.28)'}" stroke-width=".7"/>`;
     }
   });
   return s + '</svg>';
