@@ -74,15 +74,16 @@ const BEADS = (() => {
   return { arr, h: y + 10 };
 })();
 function beadsSvg(cur) {
-  let s = `<svg viewBox="0 0 30 ${BEADS.h}" preserveAspectRatio="xMidYMid meet"><line x1="15" y1="26" x2="15" y2="${BEADS.h - 10}" stroke="rgba(255,255,255,.35)" stroke-width="1"/>`;
+  let s = `<svg viewBox="0 0 30 ${BEADS.h}" preserveAspectRatio="xMidYMid meet"><line x1="15" y1="26" x2="15" y2="${BEADS.h - 10}" stroke="rgba(255,244,225,.2)" stroke-width="1"/>`;
   BEADS.arr.forEach((b, i) => {
     const on = i < cur, now = i === cur;
-    const fill = now ? '#fff' : on ? 'var(--accent)' : 'rgba(255,255,255,.22)';
-    const glow = now ? ' style="filter:drop-shadow(0 0 5px var(--accent))"' : '';
-    if (b.t === 'x') s += `<path d="M15 3v24M8 10h14" stroke="${fill}" stroke-width="${now ? 4 : 3}" stroke-linecap="round"${glow}/>`;
+    // 지난 알: 신비 색 / 지금 알: 밝은 상아색 + 얇은 테 / 남은 알: 어두운 빈 알
+    const fill = now ? '#f1e9da' : on ? 'var(--accent)' : '#2b2622';
+    if (b.t === 'x') s += `<path d="M15 3v24M8 10h14" stroke="${now || on ? fill : 'rgba(255,244,225,.3)'}" stroke-width="${now ? 3.6 : 3}" stroke-linecap="round"/>`;
     else {
-      const r = (b.t === 'L' ? 6 : 3.6) + (now ? 2 : 0);
-      s += `<circle cx="15" cy="${b.y}" r="${r}" fill="${fill}" stroke="rgba(255,255,255,.55)" stroke-width=".6"${glow}/>`;
+      const r = (b.t === 'L' ? 5.6 : 3.4) + (now ? 1.2 : 0);
+      if (now) s += `<circle cx="15" cy="${b.y}" r="${r + 2.6}" fill="var(--bg)" stroke="var(--accent)" stroke-width="1"/>`;
+      s += `<circle cx="15" cy="${b.y}" r="${r}" fill="${fill}"${on ? ' fill-opacity=".8"' : ''} stroke="${now || on ? 'none' : 'rgba(255,244,225,.28)'}" stroke-width=".7"/>`;
     }
   });
   return s + '</svg>';
@@ -94,7 +95,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 function closeModal() { $('#modal').innerHTML = ''; }
 function modal(html) { $('#modal').innerHTML = `<div class="sheet glass">${html}</div>`; return $('#modal .sheet'); }
 $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
-function setAccent(c) { document.documentElement.style.setProperty('--accent', c || '#9fd8ff'); }
+function setAccent(c) { document.documentElement.style.setProperty('--accent', c || '#c2a878'); }
 
 function render() {
   const v = $('#view');
