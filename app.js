@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261124235453'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261125000210'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -40,9 +40,9 @@ function buildSteps(n) {
   const { mystery: m, phase: p } = dayInfo(n);
   const S = [];
   const fixed = (k, extra) => S.push(Object.assign({ key: k, title: PRAYERS[k].title }, extra));
-  fixed('sign', { kicker: '시작 기도' });
-  fixed('hail', { kicker: '시작 기도' });
-  fixed(p.id, { kicker: m.name });
+  fixed('sign', { kicker: '시작' });
+  fixed('hail', { kicker: '시작' });
+  S.push({ title: `${p.name} 기도`, text: p.id === 'petition' ? m.petition : m.thanks, kicker: m.name });
   fixed('creed', { bead: 0 });
   fixed('our', { bead: 1 });
   for (let i = 0; i < 3; i++) fixed('hail', { bead: 2 + i, count: [i + 1, 3] });
@@ -51,7 +51,7 @@ function buildSteps(n) {
   for (let d = 0; d < 5; d++) {
     const base = 5 + d * 11, kicker = `${m.name} ${d + 1}단`;
     S.push({ title: `${d + 1}단`, text: m.items[d], bead: base, kicker: m.name, mystery: true });
-    if (m.meditations && m.meditations[d]) S.push({ title: '묵상', text: m.meditations[d], bead: base, kicker });
+    S.push({ title: '묵상', text: m.meditations[d], bead: base, kicker });
     fixed('our', { bead: base, kicker });
     for (let i = 0; i < 10; i++) fixed('hail', { bead: base + 1 + i, count: [i + 1, 10], kicker });
     fixed('glory', { bead: base + 10, kicker });
@@ -60,6 +60,7 @@ function buildSteps(n) {
   }
   fixed('communion', { kicker: '마침' });
   fixed(p.id === 'petition' ? 'commPet' : 'commThx', { kicker: '마침' });
+  fixed('hail', { kicker: '마침' });
   fixed('salve', { kicker: '마침' });
   fixed('salvePray', { kicker: '마침' });
   fixed('sign', { kicker: '마침' });
@@ -253,7 +254,7 @@ function renderSession(v, s) {
   const firstBead = steps.findIndex((x) => x.bead != null);
   let lastBead = 0; steps.forEach((x, i) => { if (x.bead != null) lastBead = i; });
   const showBeads = s.step >= firstBead && s.step <= lastBead;
-  const raw = (st.key ? textOf(st.key) : st.text).replace('{ROSE}', di.mystery.rose);
+  const raw = (st.key ? textOf(st.key) : st.text);
   const body = `<p class="${st.mystery ? 'mys' : ''}">${raw.split('\n').map((l) => /^\(.*\)$/.test(l.trim()) ? `<span class="paren">${esc(l)}</span>` : esc(l)).join('\n')}</p>`;
   let dots = '';
   if (st.count) { dots = '<div class="dots">'; for (let i = 1; i <= st.count[1]; i++) dots += `<i class="${i < st.count[0] ? 'on' : i === st.count[0] ? 'cur' : ''}"></i>`; dots += '</div>'; }
@@ -305,7 +306,13 @@ function renderSettings(v) {
   for (const k of Object.keys(PRAYERS)) {
     h += `<button class="item glass" data-k="${k}" data-l="${esc(PRAYERS[k].title)}">${esc(PRAYERS[k].title)}${data.texts[k] != null ? '<em class="ok">수정됨</em>' : ''}</button>`;
   }
-  h += '<p class="note">기도문은 제공된 9일기도 기도문 파일 그대로입니다. 고쳐도 「기본값」으로 되돌릴 수 있습니다. 청원·감사 기도의 {ROSE} 자리에는 그날 신비의 장미 문구가 들어갑니다.</p>';
+  h += `<p class="note">기도문을 고쳐도 「기본값」으로 되돌릴 수 있습니다.</p>
+    <div class="credits">
+      <div class="sect" style="margin-left:0">기도문 출처 및 저작권</div>
+      <p>청원·감사 기도, 각 단 묵상 기도, 꽃다발 봉헌, 신령성체의 기도, 마침 기도<br>『묵주기도로 드리는 9일기도』 ⓒ 아베마리아출판사 (2003)</p>
+      <p>사도신경, 주님의 기도, 성모송, 영광송, 구원의 기도, 성모찬송<br>『가톨릭 기도서』 ⓒ 한국천주교중앙협의회</p>
+      <p>이 앱은 개인의 기도 생활을 돕기 위해 만든 비영리 앱입니다. 광고·유료 기능이 없으며 수익을 얻지 않습니다. 기도문의 저작권은 각 저작권자에게 있습니다.</p>
+    </div>`;
   v.innerHTML = h;
   v.onclick = (e) => {
     if (e.target.closest('#bBack')) { ui.sub = null; return render(); }
