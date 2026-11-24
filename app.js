@@ -54,6 +54,7 @@ function buildSteps(n) {
     for (let i = 0; i < 10; i++) fixed('hail', { bead: base + 1 + i, count: [i + 1, 10], kicker });
     fixed('glory', { bead: base + 10, kicker });
     fixed('fatima', { bead: base + 10, kicker });
+    S.push({ title: '꽃다발 봉헌', text: m.bouquet[d], bead: base + 10, kicker });
   }
   fixed('communion', { kicker: '마침' });
   fixed(p.id === 'petition' ? 'commPet' : 'commThx', { kicker: '마침' });
