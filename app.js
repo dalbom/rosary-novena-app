@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261124110826'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261124235453'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -51,6 +51,7 @@ function buildSteps(n) {
   for (let d = 0; d < 5; d++) {
     const base = 5 + d * 11, kicker = `${m.name} ${d + 1}단`;
     S.push({ title: `${d + 1}단`, text: m.items[d], bead: base, kicker: m.name, mystery: true });
+    if (m.meditations && m.meditations[d]) S.push({ title: '묵상', text: m.meditations[d], bead: base, kicker });
     fixed('our', { bead: base, kicker });
     for (let i = 0; i < 10; i++) fixed('hail', { bead: base + 1 + i, count: [i + 1, 10], kicker });
     fixed('glory', { bead: base + 10, kicker });
