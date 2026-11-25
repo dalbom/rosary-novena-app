@@ -1,6 +1,7 @@
 # 묵주의 9일기도
 
-아이폰 Safari에서 https://dalbom.github.io/rosary-novena-app/ 을 열고 공유 → **홈 화면에 추가**로 설치합니다.
+- 아이폰: Safari에서 https://dalbom.github.io/rosary-novena-app/ 을 열고 공유 → **홈 화면에 추가**
+- 안드로이드: 크롬에서 같은 주소를 열고 ⋮ 메뉴 → **앱 설치** (또는 홈 화면에 추가)
 
 ## 안내 (Disclaimer)
 

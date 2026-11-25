@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261125000346'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261125202812'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -97,8 +97,16 @@ function beadsSvg(cur) {
 // ---------- 공통 UI ----------
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
-function closeModal() { $('#modal').innerHTML = ''; }
-function modal(html) { $('#modal').innerHTML = `<div class="sheet glass">${html}</div>`; return $('#modal .sheet'); }
+function closeModal() {
+  $('#modal').innerHTML = '';
+  // 창을 열 때 남긴 기록은 지금 화면 기록으로 바꿔 둔다 (뒤로 가기 시 같은 화면은 건너뜀)
+  if (typeof NAV !== 'undefined' && NAV && history.state && history.state.modal) history.replaceState(navKey(), '');
+}
+function modal(html) {
+  $('#modal').innerHTML = `<div class="sheet glass">${html}</div>`;
+  if (NAV && !(history.state && history.state.modal)) history.pushState(Object.assign(navKey(), { modal: true }), '');
+  return $('#modal .sheet');
+}
 $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
 // 신비별 강조색: 다크용(MYSTERIES.color)과 라이트용(더 진한 색)
 const ACCENT_LIGHT = { joy: '#587586', light: '#8f7140', sorrow: '#985a53', glory: '#6d6189' };
@@ -108,7 +116,32 @@ function setAccent(m) {
   st.setProperty('--accent-l', m ? ACCENT_LIGHT[m.id] : '#8f7140');
 }
 
+// ---------- 뒤로 가기 (안드로이드 등, 아이폰 제외) ----------
+// 아이폰은 화면 왼쪽 터치(이전 기도)와 가장자리 스와이프(뒤로 가기)가 겹치므로 켜지 않는다.
+const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const NAV = !IS_IOS && !!(window.history && history.pushState);
+const navKey = () => ({ tab: ui.tab, detail: ui.detail || null, sub: ui.sub || null });
+let navPopping = false;
+function syncHistory() {
+  if (!NAV || navPopping) return;
+  const k = navKey(), cur = history.state;
+  const same = cur && cur.tab === k.tab && cur.detail === k.detail && cur.sub === k.sub;
+  if (same) { ui.replaceNav = false; return; }
+  if (!cur || ui.replaceNav) history.replaceState(k, ''); else history.pushState(k, '');
+  ui.replaceNav = false;
+}
+if (NAV) {
+  window.addEventListener('popstate', (e) => {
+    if ($('#modal').innerHTML) { closeModal(); return; } // 뒤로 가기는 먼저 열린 창을 닫는다
+    const k = e.state || { tab: 'list', detail: null, sub: null };
+    if (k.tab === ui.tab && (k.detail || null) === (ui.detail || null) && (k.sub || null) === (ui.sub || null)) { history.back(); return; } // 같은 화면 기록은 건너뜀
+    ui.tab = k.tab; ui.detail = k.detail; ui.sub = k.sub;
+    navPopping = true; try { render(); } finally { navPopping = false; }
+  });
+}
+
 function render() {
+  syncHistory();
   const v = $('#view');
   v.className = '';
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === ui.tab));
@@ -274,7 +307,7 @@ function renderSession(v, s) {
     if (e.clientX < window.innerWidth * 0.3) { if (s.step > 0) { s.step--; save(); render(); } return; }
     if (s.step < steps.length - 1) { s.step++; save(); return render(); }
     it.done = it.done || {}; it.done[s.date] = true; data.session = null; save();
-    ui.tab = 'list'; ui.detail = it.id; ui.sub = null; ui.flash = s.date; render();
+    ui.tab = 'list'; ui.detail = it.id; ui.sub = null; ui.flash = s.date; ui.replaceNav = true; render();
     toast(doneCount(it) >= TOTAL ? '54일 기도를 모두 마쳤습니다 ✝' : '기도를 마쳤습니다');
   };
 }
