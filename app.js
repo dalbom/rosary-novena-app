@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261125203018'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261125203330'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -302,7 +302,20 @@ function renderSession(v, s) {
       <h2>${esc(st.title)}${st.count ? `<small>${st.count[0]} / ${st.count[1]}</small>` : ''}</h2>${dots}${body}
     </div></div>${showBeads ? `<div class="beads">${beadsSvg(st.bead != null ? st.bead : -1)}</div>` : ''}</div>
     <div class="phint"><span>‹ 이전</span><span>${s.step === steps.length - 1 ? '터치하여 마침 ✓' : '다음 ›'}</span></div></div>`;
+  // 처음 한 번: 터치 구역 안내
+  if (!data.tapHintSeen) {
+    const card = $('#pcard'), r = card.getBoundingClientRect();
+    const cut = Math.max(40, window.innerWidth * 0.3 - r.left);
+    const o = document.createElement('div');
+    o.className = 'taphint';
+    o.innerHTML = `<div class="tz l" style="width:${cut}px"><b>‹ 이전</b><span>왼쪽 누르기</span></div>
+      <div class="tz r" style="left:${cut}px"><b>다음 ›</b><span>가운데·오른쪽 누르기</span></div>
+      <div class="tmsg"><p>화면을 눌러 기도를 넘깁니다.<br>사용법은 설정 → 도움말에서 다시 볼 수 있어요.</p><button>알겠어요</button></div>`;
+    o.addEventListener('click', (e) => { e.stopPropagation(); data.tapHintSeen = true; save(); o.remove(); });
+    card.appendChild(o);
+  }
   v.onclick = (e) => {
+    if (e.target.closest('.taphint')) return;
     if (e.target.closest('#pClose')) { data.session = null; save(); ui.tab = 'list'; ui.detail = it.id; return render(); }
     if (!e.target.closest('#pcard')) return;
     if (e.clientX < window.innerWidth * 0.3) { if (s.step > 0) { s.step--; save(); render(); } return; }
