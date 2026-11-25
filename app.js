@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261125202812'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261125203018'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -148,6 +148,7 @@ function render() {
   if (ui.tab === 'pray') return renderPray(v);
   setAccent();
   if (ui.sub === 'settings') return renderSettings(v);
+  if (ui.sub === 'help') return renderHelp(v);
   if (ui.detail && findI(ui.detail)) return renderDetail(v, findI(ui.detail));
   renderList(v);
 }
@@ -312,6 +313,25 @@ function renderSession(v, s) {
   };
 }
 
+// ---------- 도움말 ----------
+const HELP = [
+  ['1-add.jpg', '지향 추가', '지향 목록에서 ＋를 눌러 기도할 지향과 시작일을 정합니다. 시작일부터 54일(청원 27일 + 감사 27일) 동안 바칩니다.'],
+  ['2-calendar.jpg', '달력 보기', '지향을 누르면 달력이 나옵니다. 녹색은 기도한 날, 빨간색은 빠진 날, 회색은 오늘과 앞으로의 날, ✝는 마지막 날입니다. 빨간 날을 누르면 그날 기도를 보충할 수 있습니다.'],
+  ['3-tap.jpg', '기도 넘기기', '기도 화면의 왼쪽을 누르면 이전 기도, 가운데나 오른쪽을 누르면 다음 기도로 넘어갑니다. 긴 기도문은 위아래로 밀어서 읽습니다.'],
+  ['4-beads.jpg', '묵주 위치', '묵주기도 차례에는 오른쪽에 묵주가 나옵니다. 아래 십자가에서 시작해 위로 올라가며, 지금 바치는 알이 크게 표시됩니다.'],
+  ['5-finish.jpg', '기도 마치기', '마지막 성호경 화면을 누르면 그날 기도가 기록되고 달력으로 돌아가 녹색 불이 켜집니다. 도중에 닫아도 다음에 하던 곳부터 이어집니다.'],
+];
+function renderHelp(v) {
+  let h = `<button class="back glass" id="bBack"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>설정</button>
+    <h1 style="margin-top:14px">도움말</h1>`;
+  HELP.forEach(([img, title, text], i) => {
+    h += `<div class="glass helpcard"><picture><source srcset="help/${img.replace('.jpg', '-dark.jpg')}" media="(prefers-color-scheme: dark)"><img src="help/${img}" alt="${esc(title)}" loading="lazy"></picture><div class="ht"><b>${i + 1}. ${esc(title)}</b><p>${esc(text)}</p></div></div>`;
+  });
+  h += '<p class="note">설정에서 기록을 파일로 내보내 두면 휴대폰을 바꿔도 이어서 쓸 수 있습니다.</p>';
+  v.innerHTML = h;
+  v.onclick = (e) => { if (e.target.closest('#bBack')) { ui.sub = 'settings'; render(); } };
+}
+
 // ---------- 설정 / 기도문 편집 / 백업 ----------
 function editText(key, label) {
   const isFixed = true;
@@ -328,13 +348,15 @@ function editText(key, label) {
 function renderSettings(v) {
   let h = `<button class="back glass" id="bBack"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>목록</button>
     <h1 style="margin-top:14px">설정</h1>
+    <div class="sect">사용법</div>
+    <button class="item glass" id="bHelp">도움말<em>그림으로 보는 사용법</em></button>
     <div class="sect">앱</div>
     <button class="item glass" id="bUpd">업데이트 확인<em id="verLbl">현재 버전 ${esc(verLabel(APP_VERSION))}</em></button>
     <div class="sect">백업</div>
     <button class="item glass" id="bExp">기록 내보내기<em>파일로 저장</em></button>
     <button class="item glass" id="bImp">기록 가져오기<em>백업 파일 선택</em></button>
     <input type="file" id="fImp" accept="application/json,.json" hidden>
-    <p class="note">기록은 이 아이폰 안에만 저장됩니다. 가끔 내보내서 파일 앱이나 iCloud에 보관하세요.</p>
+    <p class="note">기록은 이 휴대폰 안에만 저장됩니다. 가끔 내보내서 파일 앱, iCloud, 구글 드라이브 같은 곳에 보관하세요.</p>
     <div class="sect">기도문</div>`;
   for (const k of Object.keys(PRAYERS)) {
     h += `<button class="item glass" data-k="${k}" data-l="${esc(PRAYERS[k].title)}">${esc(PRAYERS[k].title)}${data.texts[k] != null ? '<em class="ok">수정됨</em>' : ''}</button>`;
@@ -349,6 +371,7 @@ function renderSettings(v) {
   v.innerHTML = h;
   v.onclick = (e) => {
     if (e.target.closest('#bBack')) { ui.sub = null; return render(); }
+    if (e.target.closest('#bHelp')) { ui.sub = 'help'; render(); v.scrollTop = 0; return; }
     if (e.target.closest('#bUpd')) return checkUpdate(true);
     if (e.target.closest('#bExp')) return exportData();
     if (e.target.closest('#bImp')) return $('#fImp').click();

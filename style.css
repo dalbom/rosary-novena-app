@@ -171,3 +171,8 @@ h1 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 6px 4px 
 body.has-upd #view { padding-top: calc(var(--sat) + 84px); }
 .credits { margin: 28px 6px 8px; padding-top: 16px; border-top: 1px solid var(--line); }
 .credits p { font-size: 12px; line-height: 1.65; color: var(--sub); margin: 0 0 10px; word-break: keep-all; }
+.helpcard { padding: 14px; margin-bottom: 16px; }
+.helpcard img { display: block; width: min(100%, 280px); margin: 0 auto; border-radius: 18px; border: 1px solid var(--line); }
+.helpcard .ht { padding: 14px 4px 2px; }
+.helpcard b { font-size: 17px; }
+.helpcard p { margin: 6px 0 0; font-size: 15px; line-height: 1.65; color: var(--sub); word-break: keep-all; }

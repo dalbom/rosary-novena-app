@@ -1,6 +1,7 @@
 // 오프라인 캐시. VERSION 은 build.sh 가 빌드할 때마다 바꿔 넣는다.
-const VERSION = 'novena-20261125202812';
-const FILES = ['./', 'index.html', 'style.css', 'prayers.js', 'app.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+const VERSION = 'novena-20261125203018';
+const FILES = ['./', 'index.html', 'style.css', 'prayers.js', 'app.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',
+  ...['1-add', '2-calendar', '3-tap', '4-beads', '5-finish'].flatMap((n) => [`help/${n}.jpg`, `help/${n}-dark.jpg`])];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
