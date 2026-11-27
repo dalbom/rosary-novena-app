@@ -1,5 +1,5 @@
 'use strict';
-const APP_VERSION = '20261125203330'; // build.sh 가 빌드 시각으로 바꿔 넣음
+const APP_VERSION = '20261127235747'; // build.sh 가 빌드 시각으로 바꿔 넣음
 const TOTAL = 54, HALF = 27, KEY = 'novena.v1';
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -92,6 +92,28 @@ function beadsSvg(cur) {
     }
   });
   return s + '</svg>';
+}
+
+// ---------- 햅틱 ----------
+// 안드로이드: navigator.vibrate / 아이폰(iOS 18+ Safari): 숨긴 <input type=checkbox switch>를 누르면 나는 시스템 햅틱을 이용
+function hapticOnce() {
+  if (navigator.vibrate) { navigator.vibrate(12); return; }
+  try {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox'; input.setAttribute('switch', '');
+    label.appendChild(input);
+    label.style.display = 'none';
+    document.head.appendChild(label);
+    label.click();
+    label.remove();
+  } catch (e) { /* 지원하지 않는 기기는 조용히 무시 */ }
+}
+function haptic(times = 1) {
+  if (data.haptics === false) return;
+  if (times > 1 && navigator.vibrate) { navigator.vibrate([15, 60, 15]); return; }
+  hapticOnce();
+  for (let i = 1; i < times; i++) setTimeout(hapticOnce, i * 110);
 }
 
 // ---------- 공통 UI ----------
@@ -318,8 +340,9 @@ function renderSession(v, s) {
     if (e.target.closest('.taphint')) return;
     if (e.target.closest('#pClose')) { data.session = null; save(); ui.tab = 'list'; ui.detail = it.id; return render(); }
     if (!e.target.closest('#pcard')) return;
-    if (e.clientX < window.innerWidth * 0.3) { if (s.step > 0) { s.step--; save(); render(); } return; }
-    if (s.step < steps.length - 1) { s.step++; save(); return render(); }
+    if (e.clientX < window.innerWidth * 0.3) { if (s.step > 0) { haptic(); s.step--; save(); render(); } return; }
+    if (s.step < steps.length - 1) { haptic(); s.step++; save(); return render(); }
+    haptic(2);
     it.done = it.done || {}; it.done[s.date] = true; data.session = null; save();
     ui.tab = 'list'; ui.detail = it.id; ui.sub = null; ui.flash = s.date; ui.replaceNav = true; render();
     toast(doneCount(it) >= TOTAL ? '54일 기도를 모두 마쳤습니다 ✝' : '기도를 마쳤습니다');
@@ -363,6 +386,8 @@ function renderSettings(v) {
     <h1 style="margin-top:14px">설정</h1>
     <div class="sect">사용법</div>
     <button class="item glass" id="bHelp">도움말<em>그림으로 보는 사용법</em></button>
+    <div class="sect">기도 화면</div>
+    <button class="item glass" id="bHap">넘길 때 진동<em class="${data.haptics === false ? '' : 'ok'}">${data.haptics === false ? '끔' : '켬'}</em></button>
     <div class="sect">앱</div>
     <button class="item glass" id="bUpd">업데이트 확인<em id="verLbl">현재 버전 ${esc(verLabel(APP_VERSION))}</em></button>
     <div class="sect">백업</div>
@@ -385,6 +410,7 @@ function renderSettings(v) {
   v.onclick = (e) => {
     if (e.target.closest('#bBack')) { ui.sub = null; return render(); }
     if (e.target.closest('#bHelp')) { ui.sub = 'help'; render(); v.scrollTop = 0; return; }
+    if (e.target.closest('#bHap')) { data.haptics = data.haptics === false; save(); if (data.haptics) haptic(); const y = v.scrollTop; render(); v.scrollTop = y; return; }
     if (e.target.closest('#bUpd')) return checkUpdate(true);
     if (e.target.closest('#bExp')) return exportData();
     if (e.target.closest('#bImp')) return $('#fImp').click();
@@ -396,7 +422,7 @@ function renderSettings(v) {
       const d = JSON.parse(txt);
       if (!d || !Array.isArray(d.intentions)) throw new Error('format');
       if (!confirm(`백업의 지향 ${d.intentions.length}개로 현재 기록을 바꿀까요?`)) return;
-      data = { intentions: d.intentions, texts: d.texts || {}, session: null }; save(); ui.sub = null; render(); toast('가져왔습니다');
+      data = { intentions: d.intentions, texts: d.texts || {}, session: null, haptics: data.haptics, tapHintSeen: data.tapHintSeen }; save(); ui.sub = null; render(); toast('가져왔습니다');
     }).catch(() => toast('백업 파일을 읽지 못했습니다'));
   };
 }
